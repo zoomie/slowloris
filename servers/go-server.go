@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"net"
 )
 
@@ -11,20 +10,13 @@ func handleConnection(conn net.Conn) {
 
 	buffer := make([]byte, 4096)
 	// This is where the server should hang, the slowloris
-	// should continually spin this loop.
-	for {
-		n, err := conn.Read(buffer)
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			fmt.Println("Error reading:", err)
-			return
-		}
-		request := string(buffer[:n])
-		fmt.Println("Data sent:", request)
-
+	n, err := conn.Read(buffer)
+	if err != nil {
+		fmt.Println("Error reading:", err)
+		return
 	}
+	request := string(buffer[:n])
+	fmt.Println("Data sent:", request)
 
 	response := "HTTP/1.1 200 OK\r\n" +
 		"Content-Type: text/plain\r\n" +
@@ -35,7 +27,7 @@ func handleConnection(conn net.Conn) {
 		// GET responses needed to contain a body.
 		"Hello, world!"
 
-	_, err := conn.Write([]byte(response))
+	_, err = conn.Write([]byte(response))
 	if err != nil {
 		fmt.Println("Error writing response:", err)
 		return

