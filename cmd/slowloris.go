@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	"errors"
@@ -70,14 +70,4 @@ func readResponse(conn net.Conn) (string, error) {
 		rsp += string(buffer[:numberBytesRead])
 	}
 	return rsp, nil
-}
-
-func main() {
-	server := "localhost"
-	port := "8000"
-	err := oneSlowLorisCall(server, port)
-	if err != nil {
-		fmt.Println("Error:", err)
-		return
-	}
 }
